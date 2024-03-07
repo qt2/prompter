@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .container {
+    @apply max-w-screen-lg;
+  }
+}
+
+.tiptap {
+  @apply container leading-relaxed focus:outline-none;
+}
+
+.tiptap > p {
+  @apply mt-[1em] first:mt-0;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  @apply text-base-content/50;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
