@@ -1,5 +1,8 @@
 import {
+  ChangeEvent,
+  ChangeEventHandler,
   ReactNode,
+  TouchEventHandler,
   WheelEventHandler,
   useCallback,
   useEffect,
@@ -129,7 +132,7 @@ function ControlBar() {
   const [playing, setPlaying] = useRecoilState(playingState);
   const [speed, setSpeed] = useRecoilState(speedState);
   const [fontSize, setFontSize] = useRecoilState(fontSizeState);
-  const y = useRecoilValue(yState);
+  const [y, setY] = useRecoilState(yState);
   const height = useRecoilValue(heightState);
 
   const progress = y / height;
@@ -137,6 +140,8 @@ function ControlBar() {
   const currentTime = y / speed;
 
   const togglePlaying = () => setPlaying((playing) => !playing);
+  const setProgress: ChangeEventHandler<HTMLInputElement> = (event) =>
+    setY(height * Number(event.currentTarget.value));
 
   return (
     <nav className="fixed bottom-1 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-screen-sm px-6 py-3 rounded-xl bg-base-100 drop-shadow-xl">
@@ -198,13 +203,16 @@ function ControlBar() {
           </ControlBarMenu>
         </div>
       </div>
-      <progress
-        className={`progress ${
-          playing ? "progress-secondary" : "progress-primary"
-        } w-full`}
-        value={progress * 100}
-        max={100}
-      ></progress>
+      <input
+        type="range"
+        className={`range ${
+          playing ? "range-secondary" : "range-primary"
+        } w-full h-2 no-thumb`}
+        max={1}
+        step="any"
+        value={progress}
+        onChange={setProgress}
+      />
     </nav>
   );
 }

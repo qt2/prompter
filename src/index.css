@@ -23,3 +23,19 @@
   height: 0;
   pointer-events: none;
 }
+
+.no-thumb::-webkit-slider-thumb {
+  @apply bg-inherit w-2 h-2;
+  translate: none;
+  background-color: var(--range-shdw);
+  box-shadow: -8px 0 0 3px var(--range-shdw), var(--focus-shadow, 0 0),
+    calc(var(--filler-size) * -1 - var(--filler-offset)) 0 0 var(--filler-size);
+}
+
+.no-thumb::-moz-range-thumb {
+  @apply bg-inherit w-2 h-2;
+  translate: none;
+  background-color: var(--range-shdw);
+  box-shadow: -8px 0 0 3px var(--range-shdw), var(--focus-shadow, 0 0),
+    calc(var(--filler-size) * -1 - var(--filler-offset)) 0 0 var(--filler-size);
+}
