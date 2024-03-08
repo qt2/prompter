@@ -1,13 +1,9 @@
 import {
-  ChangeEvent,
   ChangeEventHandler,
   ReactNode,
-  TouchEventHandler,
-  WheelEventHandler,
   useCallback,
   useEffect,
   useRef,
-  useState,
 } from "react";
 import { IoPause, IoPlay } from "react-icons/io5";
 import { atom, useRecoilState, useRecoilValue } from "recoil";
@@ -46,6 +42,7 @@ export const fontSizeState = atom<number>({
 });
 
 let previousTime: number;
+let previousScrollY: number;
 
 function App() {
   const [playing, setPlaying] = useRecoilState(playingState);
@@ -54,7 +51,6 @@ function App() {
   const [y, setY] = useRecoilState(yState);
   const speed = useRecoilValue(speedState);
   const [fontSize] = useRecoilState(fontSizeState);
-  const [wheelY, setWheelY] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
   const update = useCallback(() => {
@@ -62,23 +58,27 @@ function App() {
     const delta = now - previousTime;
     previousTime = now;
 
-    if (playing) {
-      setY((y) => y + speed * delta * 0.001);
-    }
-
-    if (wheelY !== 0) {
-      setY((y) => y + wheelY);
-      setWheelY(0);
+    const scrollY = window.scrollY;
+    if (scrollY !== previousScrollY) {
+      setY(scrollY);
+    } else {
+      if (playing) {
+        setY((y) => y + speed * delta * 0.001);
+      }
+      window.scroll({ top: y, behavior: "instant" });
     }
 
     const height = ref.current?.scrollHeight;
     if (height) {
       if (y >= height && playing) {
         setPlaying(false);
+        console.log("done");
       }
       setY((y) => clamp(y, 0, height));
     }
-  }, [playing, wheelY, speed]);
+
+    previousScrollY = window.scrollY;
+  }, [playing, y, speed]);
 
   useAnimationFrame(update);
 
@@ -95,36 +95,38 @@ function App() {
     return () => observer.disconnect();
   }, []);
 
-  const onWheel: WheelEventHandler = (event) => {
-    setWheelY((wheelY) => wheelY + event.deltaY);
-  };
-
   return (
-    <div className="h-dvh overflow-hidden" onWheel={onWheel}>
+    <>
       <div
-        className="sticky top-0"
-        style={{
-          transform: `translate(0, calc(50dvh - ${y}px))`,
-          fontSize: `${fontSize}px`,
-        }}
-        ref={ref}
-      >
-        <Editor />
-      </div>
+        className="absolute top-0 w-full"
+        style={{ height: `calc(100dvh + ${height}px)` }}
+      ></div>
+      <div className="fixed top-0 h-dvh overflow-y-hidden">
+        <div
+          className="sticky top-0"
+          style={{
+            transform: `translate(0, calc(50dvh - ${y}px))`,
+            fontSize: `${fontSize}px`,
+          }}
+          ref={ref}
+        >
+          <Editor />
+        </div>
 
-      <div
-        className={`pointer-events-none duration-200 ${
-          editing ? "opacity-0" : ""
-        }`}
-      >
-        <div className="fixed top-0 w-full h-[calc(50%_-_24rem)] bg-base-100/80"></div>
-        <div className="fixed top-[calc(50%_-24rem)] w-full h-48 bg-gradient-to-b from-base-100/80"></div>
-        <div className="fixed bottom-0 w-full h-[calc(50%_-_24rem)] bg-base-100/80"></div>
-        <div className="fixed bottom-[calc(50%_-24rem)] w-full h-48 bg-gradient-to-t from-base-100/80"></div>
-      </div>
+        <div
+          className={`pointer-events-none duration-200 ${
+            editing ? "opacity-0" : ""
+          }`}
+        >
+          <div className="fixed top-0 w-full h-[calc(50%_-_24rem)] bg-base-100/80"></div>
+          <div className="fixed top-[calc(50%_-24rem)] w-full h-48 bg-gradient-to-b from-base-100/80"></div>
+          <div className="fixed bottom-0 w-full h-[calc(50%_-_24rem)] bg-base-100/80"></div>
+          <div className="fixed bottom-[calc(50%_-24rem)] w-full h-48 bg-gradient-to-t from-base-100/80"></div>
+        </div>
 
-      <ControlBar />
-    </div>
+        <ControlBar />
+      </div>
+    </>
   );
 }
 
@@ -144,7 +146,7 @@ function ControlBar() {
     setY(height * Number(event.currentTarget.value));
 
   return (
-    <nav className="fixed bottom-1 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-screen-sm px-6 py-3 rounded-xl bg-base-100 drop-shadow-xl">
+    <nav className="fixed bottom-0 sm:bottom-4 left-1/2 -translate-x-1/2 w-full max-w-screen-sm px-6 py-3 rounded-xl bg-base-100 drop-shadow-xl">
       <div className="flex items-center gap-2">
         {playing ? (
           <button className="btn btn-sm btn-secondary" onClick={togglePlaying}>
