@@ -10,6 +10,7 @@ import { atom, useRecoilState, useRecoilValue } from "recoil";
 import { clamp, displayTime, useAnimationFrame } from "./utils";
 import { Editor } from "./components/editor";
 import { RiFontSize, RiSpeedUpFill } from "react-icons/ri";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export const playingState = atom<boolean>({
   key: "playing",
@@ -95,6 +96,11 @@ function App() {
     return () => observer.disconnect();
   }, []);
 
+  useHotkeys("Space", (event) => {
+    event.preventDefault();
+    setPlaying((playing) => !playing);
+  });
+
   return (
     <>
       <div
@@ -148,17 +154,29 @@ function ControlBar() {
   return (
     <nav className="fixed bottom-0 sm:bottom-4 left-1/2 -translate-x-1/2 w-full max-w-screen-sm px-6 py-3 rounded-xl bg-base-100 drop-shadow-xl">
       <div className="flex items-center gap-2">
-        {playing ? (
-          <button className="btn btn-sm btn-secondary" onClick={togglePlaying}>
-            <IoPause />
-            PAUSE
+        <div
+          className="tooltip"
+          data-tip={`${playing ? "Pause" : "Play"} (Space)`}
+        >
+          <button
+            className={`btn btn-sm ${
+              playing ? "btn-secondary" : "btn-primary"
+            }`}
+            onClick={togglePlaying}
+          >
+            {playing ? (
+              <>
+                <IoPause />
+                PAUSE
+              </>
+            ) : (
+              <>
+                <IoPlay />
+                PLAY
+              </>
+            )}
           </button>
-        ) : (
-          <button className="btn btn-sm btn-primary" onClick={togglePlaying}>
-            <IoPlay />
-            PLAY
-          </button>
-        )}
+        </div>
 
         <div className="grow"></div>
 
